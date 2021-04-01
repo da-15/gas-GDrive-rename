@@ -24,7 +24,7 @@ function onOpen(){
     .addToUi();
   
   //初期説明ダイアログの表示
-  Browser.msgBox('メニュー："マクロ実行" から処理を開始してください。');
+  Browser.msgBox('TIPS:\\nメニュー："マクロ実行" から処理を開始してください。');
 }
 
 /*
