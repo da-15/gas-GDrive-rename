@@ -1,3 +1,4 @@
+// グローバル定数
 const ROW_HEADER = 1;
 const ROW_START_DATA = 2;
 
@@ -7,12 +8,17 @@ const COL_FILE_NAME = 3;
 const COL_RENAME = 4;
 const COL_RESULT = 5;
 
+
+/*
+ * シートを開いた時の処理
+ * メニューの追加
+ */
 function onOpen(){
   //メニュー配列
   SpreadsheetApp.getUi()
     .createMenu('マクロ実行')
-    .addItem('ファイル一覧の取得', 'getFileInfo')
-    .addItem('名前の一括変換', 'renameFile')
+    .addItem('ファイル一覧の取得', 'getFileLists')
+    .addItem('名前の一括変換', 'renameFiles')
     .addSeparator()
     .addItem('データクリア', 'initTable')
     .addToUi();
@@ -24,7 +30,7 @@ function onOpen(){
 /*
  * ダイアログに指定された、GDriveフォルダ内にあるファイル/フォルダ情報を取得する
  */
-function getFileInfo() {
+function getFileLists() {
   let files;
   let file;
   let folders;
@@ -36,7 +42,6 @@ function getFileInfo() {
   //GDriveのURLが入力されたときにID前のパスを削除
   folderId = folderId.replace('https://drive.google.com/drive/folders/', '');
 
-  
   try{
     if(folderId === ''){
       // ダイアログに何も入力されなかった場合→終了
@@ -74,23 +79,10 @@ function getFileInfo() {
   }
 }
 
-// テーブルを初期化（データをクリアしてヘッダを追加）
-function initTable(){
-  let sh = SpreadsheetApp.getActiveSheet();
-
-  // シートのデータをクリア
-  sh.clearContents();
-  
-  // ヘッダ情報
-  sh.getRange(ROW_HEADER, COL_DIR).setValue('Dir');
-  sh.getRange(ROW_HEADER, COL_FILE_ID).setValue('ID');
-  sh.getRange(ROW_HEADER, COL_FILE_NAME).setValue('Name');
-  sh.getRange(ROW_HEADER, COL_RENAME).setValue('ReName（一括変換したい名前を入力）');
-  sh.getRange(ROW_HEADER, COL_RESULT).setValue('処理');
-}
-
-
-function renameFile(){
+/*
+ * ファイル／フォルダ名を一括変更する
+ */
+function renameFiles(){
   let sh = SpreadsheetApp.getActiveSheet();
   let dirFlg = '';
   let fileID = '';
@@ -119,4 +111,21 @@ function renameFile(){
       sh.getRange(i, COL_RESULT).setValue('o');
     }
   }
+}
+
+/* 
+ * テーブルを初期化（データをクリアしてヘッダを追加）
+ */
+function initTable(){
+  let sh = SpreadsheetApp.getActiveSheet();
+
+  // シートのデータをクリア
+  sh.clearContents();
+  
+  // ヘッダ情報
+  sh.getRange(ROW_HEADER, COL_DIR).setValue('Dir');
+  sh.getRange(ROW_HEADER, COL_FILE_ID).setValue('ID');
+  sh.getRange(ROW_HEADER, COL_FILE_NAME).setValue('Name');
+  sh.getRange(ROW_HEADER, COL_RENAME).setValue('ReName（一括変換したい名前を入力）');
+  sh.getRange(ROW_HEADER, COL_RESULT).setValue('処理');
 }
