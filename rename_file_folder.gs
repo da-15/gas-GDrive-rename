@@ -9,13 +9,16 @@ const COL_RESULT = 5;
 
 function onOpen(){
   //メニュー配列
-  var myMenu=[
-    {name: "ファイル一覧の取得", functionName: "getFileInfo"},
-    {name: "名前の一括変換", functionName: "renameFile"}
-  ];
+  SpreadsheetApp.getUi()
+    .createMenu('マクロ実行')
+    .addItem('ファイル一覧の取得', 'getFileInfo')
+    .addItem('名前の一括変換', 'renameFile')
+    .addSeparator()
+    .addItem('データクリア', 'initTable')
+    .addToUi();
   
-  //メニューを追加
-  SpreadsheetApp.getActiveSpreadsheet().addMenu("スクリプト",myMenu);
+  //初期説明ダイアログの表示
+  Browser.msgBox('メニュー："マクロ実行" から処理を開始してください。');
 }
 
 /*
@@ -28,20 +31,23 @@ function getFileInfo() {
   let folder;
   let i;
   let sh = SpreadsheetApp.getActiveSheet();
-  let folderId = Browser.inputBox('取得したいGDriveのフォルダIDまたはURLを入力してください。');
+  let folderId = Browser.inputBox('GDriveのフォルダIDまたはURLを入力してください。', Browser.Buttons.OK_CANCEL);
   
   //GDriveのURLが入力されたときにID前のパスを削除
   folderId = folderId.replace('https://drive.google.com/drive/folders/', '');
 
   
   try{
-    // ダイアログに何も入力されなかった場合→終了
-    if(folderId == ''){
+    if(folderId === ''){
+      // ダイアログに何も入力されなかった場合→終了
       throw new Error('A Folder ID is not defined.');
+    }else if(folderId === 'cancel'){
+      // ダイアログがキャンセルされた場合→終了
+      throw new Error('Dialog canceled');
     }
 
-    // シートの中身を削除
-    sh.clearContents();
+    // テーブルを初期化
+    initTable();
 
     // ファイルリストを取得したい親フォルダをセット
     files = DriveApp.getFolderById(folderId).getFiles(); 
@@ -66,7 +72,15 @@ function getFileInfo() {
   catch(error){
     console.error(error);
   }
+}
 
+// テーブルを初期化（データをクリアしてヘッダを追加）
+function initTable(){
+  let sh = SpreadsheetApp.getActiveSheet();
+
+  // シートのデータをクリア
+  sh.clearContents();
+  
   // ヘッダ情報
   sh.getRange(ROW_HEADER, COL_DIR).setValue('Dir');
   sh.getRange(ROW_HEADER, COL_FILE_ID).setValue('ID');
@@ -84,7 +98,9 @@ function renameFile(){
   let i;
 
   // 処理結果をクリア
-  sh.getRange(ROW_START_DATA, COL_RESULT, sh.getLastRow()-ROW_HEADER, 1).clearContent();
+  if(sh.getLastRow() - ROW_START_DATA >= 0){
+    sh.getRange(ROW_START_DATA, COL_RESULT, sh.getLastRow()-ROW_HEADER, 1).clearContent();
+  }
 
   for(i=ROW_START_DATA; i<=sh.getLastRow(); i++){
     dirFlg = sh.getRange(i, COL_DIR).getValue();
@@ -104,9 +120,3 @@ function renameFile(){
     }
   }
 }
-
-
-
-
-
-
