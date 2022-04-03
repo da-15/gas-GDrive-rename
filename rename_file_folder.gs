@@ -47,9 +47,10 @@ function getFileLists() {
   let folderId = Browser.inputBox('GDriveのフォルダIDまたはURLを入力してください。', 
     Browser.Buttons.OK_CANCEL);
   
-  //GDriveのURLが入力されたときにID前のパスを削除
+  //GDriveのURLが入力されたときにID前後のパスを削除
   folderId = folderId.replace('https://drive.google.com/drive/folders/', '');
-
+  folderId = folderId.replace(/\?.*/, '');
+  
   try{
     if(folderId === ''){
       // ダイアログに何も入力されなかった場合→終了
@@ -134,7 +135,9 @@ function initTable(){
   // ヘッダ情報
   sh.getRange(CONF.ROW.HEADER, CONF.COL.DIR).setValue('Dir');
   sh.getRange(CONF.ROW.HEADER, CONF.COL.FILE_ID).setValue('ID');
-  sh.getRange(CONF.ROW.HEADER, CONF.COL.FILE_NAME).setValue('Name');
-  sh.getRange(CONF.ROW.HEADER, CONF.COL.RENAME).setValue('ReName（一括変換したい名前を入力）');
+  sh.getRange(CONF.ROW.HEADER, CONF.COL.FILE_NAME).setValue('Name（変換前）');
+  sh.getRange(CONF.ROW.HEADER, CONF.COL.RENAME).setValue('Name（変換後）変換したい名前を入力');
   sh.getRange(CONF.ROW.HEADER, CONF.COL.RESULT).setValue('処理');
+
+  sh.getRange(1,1,1,5).setBackground('#c5d7dc');
 }
