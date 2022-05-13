@@ -1,5 +1,5 @@
 'use strict';
-// mod：2021/06/30
+// mod：2022/05/13
 // グローバル定数 --------------------------------------------------
 const CONF = {
   ROW: {
@@ -14,7 +14,6 @@ const CONF = {
     RESULT:5 // 結果出力用 カラム番号
   }
 };
-
 
 /*
  * シートを開いた時の処理
@@ -32,6 +31,25 @@ function onOpen(){
   
   //初期説明ダイアログの表示
   Browser.msgBox('TIPS:\\nメニュー："マクロ実行" から処理を開始してください。');
+}
+
+/* 
+ * テーブルを初期化（データをクリアしてヘッダを追加）
+ */
+function initTable(){
+  let sh = SpreadsheetApp.getActiveSheet();
+
+  // シートのデータをクリア
+  sh.clearContents();
+  
+  // ヘッダ情報
+  sh.getRange(CONF.ROW.HEADER, CONF.COL.DIR).setValue('Dir');
+  sh.getRange(CONF.ROW.HEADER, CONF.COL.FILE_ID).setValue('ID');
+  sh.getRange(CONF.ROW.HEADER, CONF.COL.FILE_NAME).setValue('Name');
+  sh.getRange(CONF.ROW.HEADER, CONF.COL.RENAME).setValue('Name（リネームしたいもののみ入力）');
+  sh.getRange(CONF.ROW.HEADER, CONF.COL.RESULT).setValue('処理');
+
+  sh.getRange(1,1,1,5).setBackground('#c5d7dc');
 }
 
 /*
@@ -123,21 +141,4 @@ function renameFiles(){
   }
 }
 
-/* 
- * テーブルを初期化（データをクリアしてヘッダを追加）
- */
-function initTable(){
-  let sh = SpreadsheetApp.getActiveSheet();
 
-  // シートのデータをクリア
-  sh.clearContents();
-  
-  // ヘッダ情報
-  sh.getRange(CONF.ROW.HEADER, CONF.COL.DIR).setValue('Dir');
-  sh.getRange(CONF.ROW.HEADER, CONF.COL.FILE_ID).setValue('ID');
-  sh.getRange(CONF.ROW.HEADER, CONF.COL.FILE_NAME).setValue('Name（変換前）');
-  sh.getRange(CONF.ROW.HEADER, CONF.COL.RENAME).setValue('Name（変換後）変換したい名前を入力');
-  sh.getRange(CONF.ROW.HEADER, CONF.COL.RESULT).setValue('処理');
-
-  sh.getRange(1,1,1,5).setBackground('#c5d7dc');
-}
