@@ -16,10 +16,14 @@ const CONF = {
   TITLE:{
     DIR:'Dir',
     ID:'ID',
-    NAME:'Name',
-    RENAME:'Name（リネームしたいもののみ入力）',
+    NAME:'Name（変換前）',
+    RENAME:'Name（変換後）\n※変換したい名前を入力。空はスキップされます。',
     STATUS:'処理',
     COLOR:'#c5d7dc'
+  },
+  FLAG:{
+    DONE:'済',
+    FOLDER:'d'
   }
 };
 
@@ -85,7 +89,7 @@ function getFileLists() {
     // 取得したフォルダ情報を書き出し
     for(; folders.hasNext(); i++){
         folder = folders.next();
-        sh.getRange(i, CONF.COL.DIR).setValue('d');
+        sh.getRange(i, CONF.COL.DIR).setValue(CONF.FLAG.FOLDER);
         sh.getRange(i, CONF.COL.FILE_ID).setValue(folder.getId());
         sh.getRange(i, CONF.COL.FILE_NAME).setValue(folder.getName());
     }
@@ -125,7 +129,7 @@ function renameFiles(){
         DriveApp.getFolderById(fileID).setName(fileRename);
       }
       // 処理カラムにチェック
-      sh.getRange(i, CONF.COL.RESULT).setValue('o');
+      sh.getRange(i, CONF.COL.RESULT).setValue(CONF.FLAG.DONE);
     }
   }
 }
