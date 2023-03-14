@@ -22,6 +22,10 @@ const CONF = {
   FLAG:{
     DONE:'済',
     FOLDER:'d'
+  },
+  MSG:{
+    ID_INPUT: 'GDriveのフォルダIDまたはURLを入力してください。',
+    ERROR_01: 'GDriveのフォルダIDが指定されていません。'
   }
 };
 
@@ -62,8 +66,7 @@ function dispTips(){
  */
 function getFileLists() {
   const sh = SpreadsheetApp.getActiveSheet();
-  let folderId = Browser.inputBox('GDriveのフォルダIDまたはURLを入力してください。', 
-    Browser.Buttons.OK_CANCEL);
+  let folderId = Browser.inputBox(CONF.MSG.ID_INPUT, Browser.Buttons.OK_CANCEL);
   
   //GDriveのURLが入力されたときにID前後のパスを削除
   folderId = folderId.replace('https://drive.google.com/drive/folders/', '');
@@ -71,8 +74,8 @@ function getFileLists() {
   
   try{
     if(folderId === ''){
-      // ダイアログに何も入力されなかった場合→終了
-      throw new Error('GDriveのフォルダIDが指定されていません。');
+      // ダイアログに何も入力されなかった場合
+      throw new Error(CONF.MSG.ERROR_01);
     }else if(folderId === 'cancel'){
       // ダイアログがキャンセルされた場合→終了
       return;
