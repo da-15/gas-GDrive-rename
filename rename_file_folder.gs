@@ -14,8 +14,8 @@ const CONF = {
   TITLE:{
     DIR:'Dir',
     ID:'ID',
-    NAME:'Name（元）',
-    RENAME:'※変更したい名を入力。空はスキップされます。\nName（変更後）',
+    NAME:'ファイル / フォルダ名（元）',
+    RENAME:'※変更したい名前を入力。空はスキップされます。\nファイル / フォルダ名（変更後）',
     STATUS:'処理',
     COLOR:'#cbdcf6'
   },
