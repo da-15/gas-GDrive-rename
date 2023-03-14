@@ -61,12 +61,7 @@ function dispTips(){
  * ダイアログに指定された、GDriveフォルダ内にあるファイル/フォルダ情報を取得する
  */
 function getFileLists() {
-  let files;
-  let file;
-  let folders;
-  let folder;
-  let i;
-  let sh = SpreadsheetApp.getActiveSheet();
+  const sh = SpreadsheetApp.getActiveSheet();
   let folderId = Browser.inputBox('GDriveのフォルダIDまたはURLを入力してください。', 
     Browser.Buttons.OK_CANCEL);
   
@@ -77,30 +72,31 @@ function getFileLists() {
   try{
     if(folderId === ''){
       // ダイアログに何も入力されなかった場合→終了
-      throw new Error('A Folder ID is not defined.');
+      throw new Error('GDriveのフォルダIDが指定されていません。');
     }else if(folderId === 'cancel'){
       // ダイアログがキャンセルされた場合→終了
-      throw new Error('Dialog canceled');
+      return;
     }
 
     // テーブルを初期化
     initTable();
 
     // ファイルリストを取得したい親フォルダをセット
-    files = DriveApp.getFolderById(folderId).getFiles(); 
+    const files = DriveApp.getFolderById(folderId).getFiles(); 
     // フォルダリストを取得したい親フォルダセット
-    folders = DriveApp.getFolderById(folderId).getFolders(); 
+    const folders = DriveApp.getFolderById(folderId).getFolders(); 
     
     // 取得したファイル情報を書き出し
+    let i;
     for(i = CONF.ROW.START_DATA; files.hasNext(); i++) {
-        file = files.next();
+        const file = files.next();
         sh.getRange(i, CONF.COL.FILE_ID).setValue(file.getId());
         sh.getRange(i, CONF.COL.FILE_NAME).setValue(file.getName());
     }
     
     // 取得したフォルダ情報を書き出し
     for(; folders.hasNext(); i++){
-        folder = folders.next();
+        const folder = folders.next();
         sh.getRange(i, CONF.COL.DIR).setValue(CONF.FLAG.FOLDER);
         sh.getRange(i, CONF.COL.FILE_ID).setValue(folder.getId());
         sh.getRange(i, CONF.COL.FILE_NAME).setValue(folder.getName());
@@ -108,6 +104,7 @@ function getFileLists() {
   }
   catch(error){
     console.error(error);
+    Browser.msgBox('エラー:\\n' + error);
   }
 }
 
@@ -115,22 +112,18 @@ function getFileLists() {
  * ファイル／フォルダ名を一括変更する
  */
 function renameFiles(){
-  let sh = SpreadsheetApp.getActiveSheet();
-  let dirFlg = '';
-  let fileID = '';
-  let fileRename = '';
-  let i;
-
+  const sh = SpreadsheetApp.getActiveSheet();
+  
   // 処理結果をクリア
   if(sh.getLastRow() - CONF.ROW.START_DATA >= 0){
     sh.getRange(CONF.ROW.START_DATA, CONF.COL.RESULT, 
       sh.getLastRow() - CONF.ROW.HEADER, 1).clearContent();
   }
 
-  for(i = CONF.ROW.START_DATA; i<=sh.getLastRow(); i++){
-    dirFlg = sh.getRange(i, CONF.COL.DIR).getValue();
-    fileID = sh.getRange(i, CONF.COL.FILE_ID).getValue();
-    fileRename = sh.getRange(i, CONF.COL.RENAME).getValue();
+  for(let i = CONF.ROW.START_DATA; i<=sh.getLastRow(); i++){
+    const dirFlg = sh.getRange(i, CONF.COL.DIR).getValue();
+    const fileID = sh.getRange(i, CONF.COL.FILE_ID).getValue();
+    const fileRename = sh.getRange(i, CONF.COL.RENAME).getValue();
 
     if(fileRename !== ''){
       if(dirFlg === ''){
@@ -150,7 +143,7 @@ function renameFiles(){
  * テーブルを初期化（データをクリアしてヘッダを追加）
  */
 function initTable(){
-  let sh = SpreadsheetApp.getActiveSheet();
+  const sh = SpreadsheetApp.getActiveSheet();
 
   // シートのデータをクリア
   sh.clearContents();
