@@ -44,6 +44,9 @@ function onOpen(){
   dispTips();
 }
 
+/*
+ * TIPSを表示する
+ */
 function dispTips(){
   const msg = '' +
     '【 TIPS 】\\n' +
