@@ -8,9 +8,11 @@ https://github.com/da-15/gas-GDrive-rename/archive/refs/heads/main.zip
 
 拡張機能 → Apps Script を開く
 
+```
 function myFunction() {
   
 }
+```
 
 と書かれているコードを「rename_file_folder.gs」の中身に置き換える。
 
