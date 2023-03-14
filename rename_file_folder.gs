@@ -66,9 +66,9 @@ function dispTips(){
  */
 function getFileLists() {
   const sh = SpreadsheetApp.getActiveSheet();
-  let folderId = Browser.inputBox(CONF.MSG.ID_INPUT, Browser.Buttons.OK_CANCEL);
   
-  //GDriveのURLが入力されたときにID前後のパスを削除
+  //フォルダIDを取得（GDriveのURLが入力された場合はID前後のパスを削除）
+  let folderId = Browser.inputBox(CONF.MSG.ID_INPUT, Browser.Buttons.OK_CANCEL);
   folderId = folderId.replace('https://drive.google.com/drive/folders/', '');
   folderId = folderId.replace(/\?.*/, '');
   
