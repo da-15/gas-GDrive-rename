@@ -1,6 +1,4 @@
 'use strict';
-// mod：2022/05/13
-// グローバル定数 --------------------------------------------------
 const CONF = {
   ROW: {
     HEADER: 1, //ヘッダ行
@@ -16,10 +14,10 @@ const CONF = {
   TITLE:{
     DIR:'Dir',
     ID:'ID',
-    NAME:'Name（変換前）',
-    RENAME:'Name（変換後）\n※変換したい名前を入力。空はスキップされます。',
+    NAME:'Name（元）',
+    RENAME:'※変更したい名を入力。空はスキップされます。\nName（変更後）',
     STATUS:'処理',
-    COLOR:'#c5d7dc'
+    COLOR:'#cbdcf6'
   },
   FLAG:{
     DONE:'済',
@@ -34,15 +32,26 @@ const CONF = {
 function onOpen(){
   //メニュー配列
   SpreadsheetApp.getUi()
-    .createMenu('マクロ実行')
-    .addItem('ファイル一覧の取得', 'getFileLists')
-    .addItem('名前の一括変換', 'renameFiles')
+    .createMenu('GDrive名前一括変換')
+    .addItem('ファイル/フォルダ一覧の取得', 'getFileLists')
+    .addItem('名前を一括変換', 'renameFiles')
     .addSeparator()
     .addItem('データクリア', 'initTable')
+    .addItem('TIPSを表示', 'dispTips')
     .addToUi();
   
   //初期説明ダイアログの表示
-  Browser.msgBox('TIPS:\\nメニュー："マクロ実行" から処理を開始してください。');
+  dispTips();
+}
+
+function dispTips(){
+  const msg = '' +
+    'TIPS:\\n' +
+    'メニュー「GDrive名前一括変換」から、はじめます。\\n\\n' + 
+    '1.メニュー「ファイル/フォルダ一覧の取得」から一覧の取得する\\n' + 
+    '2.一覧にて変更したい名前を入力する\\n' + 
+    '3.メニュー「名前を一括変換」にて一括変換を開始します';
+   Browser.msgBox(msg);
 }
 
 /*
@@ -142,7 +151,7 @@ function initTable(){
 
   // シートのデータをクリア
   sh.clearContents();
-  
+
   // ヘッダ情報
   sh.getRange(CONF.ROW.HEADER, CONF.COL.DIR).setValue(CONF.TITLE.DIR);
   sh.getRange(CONF.ROW.HEADER, CONF.COL.FILE_ID).setValue(CONF.TITLE.ID);
@@ -150,6 +159,14 @@ function initTable(){
   sh.getRange(CONF.ROW.HEADER, CONF.COL.RENAME).setValue(CONF.TITLE.RENAME);
   sh.getRange(CONF.ROW.HEADER, CONF.COL.RESULT).setValue(CONF.TITLE.STATUS);
 
-  sh.getRange(1,1,1,5).setBackground(CONF.TITLE.COLOR);
+  // ヘッダの幅調整
+  sh.setColumnWidth(CONF.COL.DIR, 50);
+  sh.setColumnWidth(CONF.COL.FILE_ID, 300);
+  sh.setColumnWidth(CONF.COL.FILE_NAME, 400);
+  sh.setColumnWidth(CONF.COL.RENAME, 400);
+  sh.setColumnWidth(CONF.COL.RESULT, 50);
+  
+  //ヘッダの色
+  sh.getRange(1,1,1,CONF.COL.RESULT).setBackground(CONF.TITLE.COLOR);
 }
 
