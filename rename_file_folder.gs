@@ -37,10 +37,10 @@ function onOpen(){
   //メニュー配列
   SpreadsheetApp.getUi()
     .createMenu('GDrive名前一括変換')
-    .addItem('ファイル/フォルダ一覧の取得', 'getFileLists')
-    .addItem('名前を一括変換', 'renameFiles')
+    .addItem('フォルダのパスを指定する', 'getFileLists')
+    .addItem('名前を一括変換する', 'renameFiles')
     .addSeparator()
-    .addItem('データクリア', 'initTable')
+    .addItem('一覧をクリアする', 'initTable')
     .addItem('TIPSを表示', 'dispTips')
     .addToUi();
   
@@ -55,9 +55,9 @@ function dispTips(){
   const msg = '' +
     '【 TIPS 】\\n' +
     'メニュー「GDrive名前一括変換」から処理をはじめます。\\n\\n' + 
-    '1. メニュー「ファイル/フォルダ一覧の取得」から一覧を取得する\\n' + 
+    '1. メニュー「フォルダのパスを指定する」にて対象のURLを指定する\\n' + 
     '2. 一覧にて変更したい名前を指定する\\n' + 
-    '3. メニュー「名前を一括変換」から一括変換を開始します';
+    '3. メニュー「名前を一括変換する」にて変換を開始する';
    Browser.msgBox(msg);
 }
 
