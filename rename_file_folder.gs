@@ -21,6 +21,7 @@ const CONF = {
   },
   FLAG:{
     DONE:'済',
+    ERROR:'エラー',
     FOLDER:'d'
   },
   MSG:{
@@ -34,7 +35,6 @@ const CONF = {
  * メニューの追加
  */
 function onOpen(){
-  //メニュー配列
   SpreadsheetApp.getUi()
     .createMenu('GDrive名前一括変換')
     .addItem('フォルダのパスを指定する', 'getFileLists')
@@ -43,9 +43,6 @@ function onOpen(){
     .addItem('一覧をクリアする', 'initTable')
     .addItem('TIPSを表示', 'dispTips')
     .addToUi();
-  
-  //初期説明ダイアログの表示
-  dispTips();
 }
 
 /*
@@ -53,12 +50,23 @@ function onOpen(){
  */
 function dispTips(){
   const msg = '' +
-    '【 TIPS 】\\n' +
-    'メニュー「GDrive名前一括変換」から処理をはじめます。\\n\\n' + 
-    '1. メニュー「フォルダのパスを指定する」にて対象のURLを指定する\\n' + 
-    '2. 一覧にて変更したい名前を指定する\\n' + 
+    '【 TIPS 】\n' +
+    'メニュー「GDrive名前一括変換」から処理をはじめます。\n\n' +
+    '1. メニュー「フォルダのパスを指定する」にて対象のURLを指定する\n' +
+    '2. 一覧にて変更したい名前を指定する\n' +
     '3. メニュー「名前を一括変換する」にて変換を開始する';
    Browser.msgBox(msg);
+}
+
+/*
+ * GDriveフォルダのURLまたはIDからフォルダIDを抽出する
+ */
+function extractFolderId(input) {
+  // /drive/folders/{id} 形式（/u/0/ などのユーザー番号を含む場合も対応）
+  const match = input.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  if (match) return match[1];
+  // URLではなくIDが直接入力された場合はそのまま返す
+  return input;
 }
 
 /*
@@ -66,48 +74,47 @@ function dispTips(){
  */
 function getFileLists() {
   const sh = SpreadsheetApp.getActiveSheet();
-  
-  //フォルダIDを取得（GDriveのURLが入力された場合はID前後のパスを削除）
-  let folderId = Browser.inputBox(CONF.MSG.ID_INPUT, Browser.Buttons.OK_CANCEL);
-  folderId = folderId.replace('https://drive.google.com/drive/folders/', '');
-  folderId = folderId.replace(/\?.*/, '');
-  
+
+  let rawInput = Browser.inputBox(CONF.MSG.ID_INPUT, Browser.Buttons.OK_CANCEL);
+
+  if(rawInput === 'cancel'){
+    return;
+  }
+
+  const folderId = extractFolderId(rawInput.trim());
+
   try{
     if(folderId === ''){
-      // ダイアログに何も入力されなかった場合
       throw new Error(CONF.MSG.ERROR_01);
-    }else if(folderId === 'cancel'){
-      // ダイアログがキャンセルされた場合→終了
-      return;
     }
 
-    // テーブルを初期化
     initTable();
 
-    // ファイルリストを取得したい親フォルダをセット
-    const files = DriveApp.getFolderById(folderId).getFiles(); 
-    // フォルダリストを取得したい親フォルダセット
-    const folders = DriveApp.getFolderById(folderId).getFolders(); 
-    
-    // 取得したファイル情報を書き出し
-    let i;
-    for(i = CONF.ROW.START_DATA; files.hasNext(); i++) {
-        const file = files.next();
-        sh.getRange(i, CONF.COL.FILE_ID).setValue(file.getId());
-        sh.getRange(i, CONF.COL.FILE_NAME).setValue(file.getName());
+    // getFolderById を1回だけ呼び出す
+    const folder = DriveApp.getFolderById(folderId);
+    const files = folder.getFiles();
+    const folders = folder.getFolders();
+
+    const rows = [];
+
+    while(files.hasNext()) {
+      const file = files.next();
+      rows.push(['', file.getId(), file.getName(), '', '']);
     }
-    
-    // 取得したフォルダ情報を書き出し
-    for(; folders.hasNext(); i++){
-        const folder = folders.next();
-        sh.getRange(i, CONF.COL.DIR).setValue(CONF.FLAG.FOLDER);
-        sh.getRange(i, CONF.COL.FILE_ID).setValue(folder.getId());
-        sh.getRange(i, CONF.COL.FILE_NAME).setValue(folder.getName());
+
+    while(folders.hasNext()) {
+      const f = folders.next();
+      rows.push([CONF.FLAG.FOLDER, f.getId(), f.getName(), '', '']);
+    }
+
+    if(rows.length > 0){
+      // まとめて1回のAPI呼び出しで書き込む
+      sh.getRange(CONF.ROW.START_DATA, CONF.COL.DIR, rows.length, 5).setValues(rows);
     }
   }
   catch(error){
     console.error(error);
-    Browser.msgBox('エラー:\\n' + error);
+    Browser.msgBox('エラー:\n' + error);
   }
 }
 
@@ -116,56 +123,66 @@ function getFileLists() {
  */
 function renameFiles(){
   const sh = SpreadsheetApp.getActiveSheet();
-  
+  const lastRow = sh.getLastRow();
+
+  if(lastRow < CONF.ROW.START_DATA) return;
+
+  const numDataRows = lastRow - CONF.ROW.HEADER;
+
   // 処理結果をクリア
-  if(sh.getLastRow() - CONF.ROW.START_DATA >= 0){
-    sh.getRange(CONF.ROW.START_DATA, CONF.COL.RESULT, 
-      sh.getLastRow() - CONF.ROW.HEADER, 1).clearContent();
-  }
+  sh.getRange(CONF.ROW.START_DATA, CONF.COL.RESULT, numDataRows, 1).clearContent();
 
-  for(let i = CONF.ROW.START_DATA; i<=sh.getLastRow(); i++){
-    const dirFlg = sh.getRange(i, CONF.COL.DIR).getValue();
-    const fileID = sh.getRange(i, CONF.COL.FILE_ID).getValue();
-    const fileRename = sh.getRange(i, CONF.COL.RENAME).getValue();
+  // 対象データを一括取得
+  const dataRange = sh.getRange(CONF.ROW.START_DATA, CONF.COL.DIR, numDataRows, CONF.COL.RESULT);
+  const data = dataRange.getValues();
+  const results = data.map(row => [row[CONF.COL.RESULT - 1]]);
 
-    if(fileRename !== ''){
+  for(let i = 0; i < data.length; i++){
+    const dirFlg    = data[i][CONF.COL.DIR - 1];
+    const fileID    = data[i][CONF.COL.FILE_ID - 1];
+    const fileRename = data[i][CONF.COL.RENAME - 1];
+
+    if(fileRename === '' || fileID === '') continue;
+
+    try{
       if(dirFlg === ''){
-        // ファイル名の変更
         DriveApp.getFileById(fileID).setName(fileRename);
       }else{
-        //フォルダ名の変更
         DriveApp.getFolderById(fileID).setName(fileRename);
       }
-      // 処理カラムにチェック
-      sh.getRange(i, CONF.COL.RESULT).setValue(CONF.FLAG.DONE);
+      results[i][0] = CONF.FLAG.DONE;
+    }catch(error){
+      console.error(error);
+      results[i][0] = CONF.FLAG.ERROR;
     }
   }
+
+  // 結果を一括書き込み
+  sh.getRange(CONF.ROW.START_DATA, CONF.COL.RESULT, results.length, 1).setValues(results);
 }
 
-/* 
+/*
  * テーブルを初期化（データをクリアしてヘッダを追加）
  */
 function initTable(){
   const sh = SpreadsheetApp.getActiveSheet();
 
-  // シートのデータをクリア
   sh.clearContents();
 
-  // ヘッダ情報
-  sh.getRange(CONF.ROW.HEADER, CONF.COL.DIR).setValue(CONF.TITLE.DIR);
-  sh.getRange(CONF.ROW.HEADER, CONF.COL.FILE_ID).setValue(CONF.TITLE.ID);
-  sh.getRange(CONF.ROW.HEADER, CONF.COL.FILE_NAME).setValue(CONF.TITLE.NAME);
-  sh.getRange(CONF.ROW.HEADER, CONF.COL.RENAME).setValue(CONF.TITLE.RENAME);
-  sh.getRange(CONF.ROW.HEADER, CONF.COL.RESULT).setValue(CONF.TITLE.STATUS);
+  // ヘッダを一括セット
+  sh.getRange(CONF.ROW.HEADER, CONF.COL.DIR, 1, 5).setValues([[
+    CONF.TITLE.DIR,
+    CONF.TITLE.ID,
+    CONF.TITLE.NAME,
+    CONF.TITLE.RENAME,
+    CONF.TITLE.STATUS
+  ]]);
 
-  // ヘッダの幅調整
   sh.setColumnWidth(CONF.COL.DIR, 50);
   sh.setColumnWidth(CONF.COL.FILE_ID, 300);
   sh.setColumnWidth(CONF.COL.FILE_NAME, 400);
   sh.setColumnWidth(CONF.COL.RENAME, 400);
   sh.setColumnWidth(CONF.COL.RESULT, 50);
-  
-  //ヘッダの色
-  sh.getRange(1,1,1,CONF.COL.RESULT).setBackground(CONF.TITLE.COLOR);
-}
 
+  sh.getRange(1, 1, 1, CONF.COL.RESULT).setBackground(CONF.TITLE.COLOR);
+}
