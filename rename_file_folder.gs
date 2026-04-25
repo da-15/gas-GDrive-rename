@@ -1,16 +1,5 @@
 'use strict';
 /*
- * GDriveフォルダのURLまたはIDからフォルダIDを抽出する
- */
-function extractFolderId(input) {
-  // /drive/folders/{id} 形式（/u/0/ などのユーザー番号を含む場合も対応）
-  const match = input.match(/\/folders\/([a-zA-Z0-9_-]+)/);
-  if (match) return match[1];
-  // URLではなくIDが直接入力された場合はそのまま返す
-  return input;
-}
-
-/*
  * ダイアログに指定された、GDriveフォルダ内にあるファイル/フォルダ情報を取得する
  */
 function getFileLists() {
@@ -126,4 +115,15 @@ function initTable(){
   sh.setColumnWidth(CONF.COL.RESULT, 50);
 
   sh.getRange(1, 1, 1, CONF.COL.RESULT).setBackground(CONF.TITLE.COLOR);
+}
+
+/*
+ * GDriveフォルダのURLまたはIDからフォルダIDを抽出する
+ */
+function extractFolderId(input) {
+  // /drive/folders/{id} 形式（/u/0/ などのユーザー番号を含む場合も対応）
+  const match = input.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  if (match) return match[1];
+  // URLではなくIDが直接入力された場合はそのまま返す
+  return input;
 }
