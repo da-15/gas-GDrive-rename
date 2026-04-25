@@ -44,7 +44,7 @@ function getFileLists() {
   }
   catch(error){
     console.error(error);
-    Browser.msgBox('エラー:\n' + error);
+    Browser.msgBox('エラー:\\n' + error);
   }
 }
 
